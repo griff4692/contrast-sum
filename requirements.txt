@@ -1,0 +1,6 @@
+nlp
+transformers
+pandas
+p_tqdm
+spacy
+torch
