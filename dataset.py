@@ -1,3 +1,4 @@
+import os
 import re
 
 import argparse
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     ])
 
     args = parser.parse_args()
+    os.makedirs('data', exist_ok=True)
 
     data = load_dataset('cnn_dailymail', '3.0.0')
     splits = ['train', 'validation', 'test']
