@@ -99,7 +99,6 @@ def add_noise(source, sent_swap_p=DEFAULT_SWAP_PROB, ent_swap_p=DEFAULT_SWAP_PRO
     sent_swaps = ensure_min(all_sent_pairs, sampled_sent_swaps, min_sent_swaps)
     num_sent_swaps = len(sent_swaps)
     swap_items(text_pieces, sent_swaps)
-    print(num_ent_swaps * 2.0 / num_ents)
     return ' '.join(sents), num_ent_swaps, num_ents, num_sent_swaps, num_sents
 
 

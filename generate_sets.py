@@ -3,18 +3,11 @@ import pandas as pd
 from transformers.pipelines import pipeline
 from tqdm import tqdm
 
-from perturb import add_noise
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Script to Generate Contrast sets')
     parser.add_argument('--splits', default='train,validation')
     parser.add_argument('--model', default='bart-large-cnn', choices=['bart-large-cnn'])
-    parser.add_argument('--num_contrasts', default=3, choices=[1, 2, 3, 4, 5], type=int)
-    parser.add_argument('--sent_swap_p', default=0.1, type=float)
-    parser.add_argument('--ent_swap_p', default=0.1, type=float)
-    parser.add_argument('--min_sent_swaps', default=1, type=int)
-    parser.add_argument('--min_ent_swaps', default=2, type=int)
 
     args = parser.parse_args()
 
@@ -40,15 +33,10 @@ if __name__ == '__main__':
             orig_source = record['source_orig']
             orig_summary = summarizer(orig_source, **task_params)
             record['model_summary'] = orig_summary
-            for i in range(args.num_contrasts):
-                contrast_source = add_noise(
-                    record['source_dec'], ent_swap_p=args.ent_swap_p, sent_swap_p=args.sent_swap_p,
-                    min_ent_swaps=args.min_ent_swaps, min_sent_swaps=args.min_sent_swaps
-                )
+            for k in range(args.num_contrasts):
+                contrast_source = record[f'source_contrast_{k + 1}']
                 contrast_summary = summarizer(contrast_source, **task_params)
-
-                record[f'model_contrast_source_{i}'] = contrast_source
-                record[f'model_contrast_summary_{i}'] = contrast_summary
+                record[f'summary_contrast_{k + 1}'] = contrast_summary
 
         df_augmented = pd.DataFrame(records)
         out_fn = f'data/{split}_w_sets.csv'
