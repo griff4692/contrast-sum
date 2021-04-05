@@ -57,15 +57,15 @@ def process_target(target_sents, spacy_nlp):
     return pieces
 
 
-def decorate(source, target, spacy_nlp):
+def decorate(id, source, target, spacy_nlp):
     source = re.sub(r'\|{2,}', ' ', source).replace('&nbsp;', '')
     target = re.sub(r'\|{2,}', ' ', target).replace('&nbsp;', '')
-    source = source.lstrip('(CNN) -- ')
+    # source = source.lstrip('(CNN) -- ')
     source_pieces = process_source(source, spacy_nlp)
     target_sents = target.split('\n')
     target_sents = [t.lstrip('NEW: ') for t in target_sents]
     target_pieces = process_target(target_sents, spacy_nlp)
-    return {'source_dec': '||'.join(source_pieces), 'target_dec': '||'.join(target_pieces),
+    return {'id': id, 'source_dec': '||'.join(source_pieces), 'target_dec': '||'.join(target_pieces),
             'source_orig': source, 'target_orig': target}
 
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.makedirs('data', exist_ok=True)
 
+    print('Loading CNN/DM')
     data = load_dataset('cnn_dailymail', '3.0.0')
     splits = ['train', 'validation', 'test']
 
@@ -90,16 +91,17 @@ if __name__ == '__main__':
         split_data = data[split]
         n = len(split_data)
         print(f'Loaded {n} examples for {split} set')
+        ids = split_data['id']
         sources = split_data['article']
         targets = split_data['highlights']
-        data_joined = list(zip(sources, targets))
+        data_joined = list(zip(ids, sources, targets))
         if n > args.max_n:
             print(f'Sampling {args.max_n} examples from {n}')
             sample_idxs = np.random.choice(range(n), size=args.max_n, replace=False)
             data_trunc = [data_joined[i] for i in sample_idxs]
             data_joined = data_trunc
         print(f'Process {len(data_joined)} examples for {split} set')
-        outputs = list(p_uimap(lambda x: decorate(x[0], x[1], spacy_nlp=spacy_nlp), data_joined))
+        outputs = list(p_uimap(lambda x: decorate(x[0], x[1], x[2], spacy_nlp=spacy_nlp), data_joined))
         df = pd.DataFrame(outputs)
         out_fn = f'data/{split}.csv'
         print(f'Saving {len(df)} examples to {out_fn}')
