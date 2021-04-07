@@ -121,9 +121,9 @@ if __name__ == '__main__':
     parser.add_argument('--splits', default='train,validation')
     parser.add_argument('--num_contrasts', default=3, choices=[1, 2, 3, 4, 5], type=int)
     parser.add_argument('--sent_swap_p', default=0.1, type=float)
-    parser.add_argument('--ent_swap_p', default=0.4, type=float)
+    parser.add_argument('--ent_swap_p', default=0.3, type=float)
     parser.add_argument('--min_sent_swaps', default=1, type=int)
-    parser.add_argument('--min_ent_swaps', default=5, type=int)
+    parser.add_argument('--min_ent_swaps', default=3, type=int)
     parser.add_argument('--K', default=3, type=int, help='Number of negative examples to sample')
 
     args = parser.parse_args()
@@ -132,9 +132,11 @@ if __name__ == '__main__':
     for split in splits:
         print(f'Loading {split} set')
         df = pd.read_csv(f'data/{split}.csv')
+        if 'id' not in df.columns:
+            df = df.assign(id=list(range(len(df))))
         print(f'Loaded {len(df)} examples')
         records = df.to_dict('records')
         contrast_records = list(p_uimap(lambda record: process(record, args), records))
         contrast_df = pd.DataFrame(contrast_records)
-        out_fn = f'data/{split}_contrast.csv'
+        out_fn = f'data/{split}_noise.csv'
         contrast_df.to_csv(out_fn, index=False)

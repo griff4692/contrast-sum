@@ -2,7 +2,7 @@ import os
 import re
 
 import argparse
-from nlp import load_dataset
+from nlp.arrow_dataset import Dataset as ArrowDataset
 import numpy as np
 import pandas as pd
 import spacy
@@ -80,18 +80,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     os.makedirs('data', exist_ok=True)
-
-    print('Loading CNN/DM')
-    data = load_dataset('cnn_dailymail', '3.0.0')
-    splits = ['train', 'validation', 'test']
-
     spacy_nlp = spacy.load(args.spacy)
-
+    splits = ['train', 'validation', 'test']
+    data_dir = os.path.expanduser('~/contrast-sum/data/')
     for split in splits:
-        split_data = data[split]
+        split_data = ArrowDataset.from_file(os.path.join(data_dir, f'3.0.0/cnn_dailymail-{split}.arrow'))
         n = len(split_data)
         print(f'Loaded {n} examples for {split} set')
-        ids = split_data['id']
+        ids = list(range(len(split_data['article'])))
         sources = split_data['article']
         targets = split_data['highlights']
         data_joined = list(zip(ids, sources, targets))
